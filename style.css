@@ -1,0 +1,24 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background: #eeeeee;
+	margin: 0;
+	padding: 2em;
+	text-align:center;
+}
+
+#game {
+	width: 100%;
+	height: 100%;
+	border: 1px solid black;
+	background: white;
+}
+
+#gamepad-info {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	font-family: sans-serif;
+}
