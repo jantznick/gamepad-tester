@@ -16,7 +16,7 @@ body {
 	background: white;
 }
 
-#gamepad-info {
+p#title {
 	position: absolute;
 	left: 50%;
 	transform: translateX(-50%);
