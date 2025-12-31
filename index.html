@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Character Collector Game</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen">
+	<!-- Start Screen -->
+	<div id="start-screen" class="min-h-screen flex items-center justify-center p-4">
+		<div class="max-w-4xl w-full">
+			<!-- Title -->
+			<div class="text-center mb-8">
+				<h1 class="text-6xl font-bold text-purple-800 mb-4">Character Collector</h1>
+				<p class="text-xl text-gray-700">Choose your characters and collect your prizes!</p>
+			</div>
+
+			<!-- Character Selection -->
+			<div class="bg-white rounded-lg shadow-2xl p-6 mb-6">
+				<h2 class="text-2xl font-semibold mb-4 text-gray-800 text-center">Select Characters</h2>
+				
+				<div class="grid md:grid-cols-2 gap-6">
+					<!-- Player 1 Selection -->
+					<div id="player1-box" class="border-4 border-gray-300 rounded-lg p-4 bg-gray-50 transition-all">
+						<h3 id="player1-title" class="font-bold text-gray-600 mb-4 text-2xl text-center">Player 1</h3>
+						<div class="flex flex-wrap gap-4 justify-center mb-4" id="player1-buttons">
+							<!-- Character images will be dynamically generated from config.json -->
+						</div>
+						<div class="text-center">
+							<div id="player1-selected" class="text-lg font-semibold text-gray-600 mb-2">Tap a character!</div>
+							<div class="text-xs text-gray-500">Controls: Arrow Keys or Gamepad 1</div>
+						</div>
+					</div>
+
+					<!-- Player 2 Selection -->
+					<div id="player2-box" class="border-4 border-gray-300 rounded-lg p-4 bg-gray-50 transition-all">
+						<h3 id="player2-title" class="font-bold text-gray-600 mb-4 text-2xl text-center">Player 2</h3>
+						<div class="flex flex-wrap gap-4 justify-center mb-4" id="player2-buttons">
+							<!-- Character images will be dynamically generated from config.json -->
+						</div>
+						<div class="text-center">
+							<div id="player2-selected" class="text-lg font-semibold text-gray-600 mb-2">Tap a character!</div>
+							<div class="text-xs text-gray-500">Controls: WASD Keys or Gamepad 2</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Countdown Display -->
+				<div id="selection-countdown" class="text-center mt-4 hidden"></div>
+				
+				<!-- Start Button -->
+				<div class="text-center mt-6">
+					<button id="start-button" onclick="startGame()" disabled class="px-8 py-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-xl font-bold disabled:bg-gray-400 disabled:cursor-not-allowed">
+						Start Game
+					</button>
+				</div>
+			</div>
+
+			<!-- Gamepad Status -->
+			<div id="gamepad-status" class="text-center text-sm text-gray-600"></div>
+		</div>
+	</div>
+
+	<!-- Game Screen (Hidden Initially) -->
+	<div id="game-screen" class="hidden fixed inset-0 bg-black">
+		<!-- Game Canvas -->
+		<canvas id="game" class="w-full h-full"></canvas>
+		
+		<!-- Game UI Overlay -->
+		<div class="absolute top-4 left-4 right-4 flex justify-between items-start">
+			<!-- Scores -->
+			<div class="bg-black bg-opacity-50 text-white p-4 rounded-lg">
+				<div class="text-lg font-bold mb-2"><span id="player1-score">Loading...</span></div>
+				<div class="text-lg font-bold"><span id="player2-score">Loading...</span></div>
+			</div>
+			
+			<!-- Exit Button -->
+			<button onclick="exitGame()" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition font-bold">
+				Exit Game (ESC)
+			</button>
+		</div>
+	</div>
+
+	<!-- Hidden Images -->
+	<div style="display:none;">
+		<img id="moana" src="moana.png" alt="Moana">
+		<img id="heihei" src="heihei.png" alt="Hei Hei">
+		<img id="heart" src="heart.png" alt="Heart">
+	</div>
+
+	<script type="module" src="js/main.js"></script>
+</body>
+</html>

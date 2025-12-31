@@ -1,24 +1,41 @@
-* {
-	box-sizing: border-box;
-}
-
-body {
-	background: #eeeeee;
-	margin: 0;
-	padding: 2em;
-	text-align:center;
-}
-
+/* Custom styles to complement Tailwind */
 #game {
-	width: 100%;
-	height: 100%;
-	border: 1px solid black;
-	background: white;
+	display: block;
+	background: linear-gradient(135deg, #e0f2fe 0%, #fce7f3 100%);
 }
 
-p#title {
-	position: absolute;
-	left: 50%;
-	transform: translateX(-50%);
-	font-family: sans-serif;
+/* Character selection buttons - kid-friendly */
+.character-btn {
+	transition: all 0.3s ease;
+}
+
+.character-btn:not(:disabled):hover {
+	transform: scale(1.1);
+}
+
+.character-btn:not(:disabled):active {
+	transform: scale(0.95);
+}
+
+/* Smooth animations */
+* {
+	transition: background-color 0.2s ease;
+}
+
+/* Fullscreen game styling */
+#game-screen {
+	z-index: 1000;
+}
+
+/* Hide scrollbars in fullscreen */
+body:fullscreen,
+body:-webkit-full-screen,
+body:-moz-full-screen,
+body:-ms-fullscreen {
+	overflow: hidden;
+}
+
+/* Ensure canvas fills screen */
+#game-screen canvas {
+	display: block;
 }

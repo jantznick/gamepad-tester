@@ -1,0 +1,50 @@
+{
+	"characters": [
+		{
+			"id": "moana",
+			"image": "moana.png",
+			"prize": "heart.png",
+			"prizeType": "heart",
+			"playerName": "Moana"
+		},
+		{
+			"id": "heihei",
+			"image": "heihei.png",
+			"prize": "heart.png",
+			"prizeType": "heart",
+			"playerName": "Hei Hei"
+		},
+		{
+			"id": "blaze",
+			"image": "blaze.png",
+			"prize": "star.png",
+			"prizeType": "star",
+			"playerName": "Blaze"
+		},
+		{
+			"id": "spidey",
+			"image": "spidey.png",
+			"prize": "web.png",
+			"prizeType": "web",
+			"playerName": "Spidey"
+		},
+		{
+			"id": "bluey",
+			"image": "bluey.png",
+			"prizeType": "bone",
+			"playerName": "Bluey"
+		},
+		{
+			"id": "rumi",
+			"image": "rumi.png",
+			"prizeType": "star",
+			"playerName": "Rumi"
+		}
+	],
+	"gameSettings": {
+		"characterSize": 200,
+		"prizeSize": 50,
+		"moveSpeed": 10,
+		"numPrizes": 5
+	}
+}
