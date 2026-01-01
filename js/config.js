@@ -92,8 +92,10 @@ export async function loadPrizeImages() {
 				resolve();
 			};
 			img.onerror = () => {
-				console.warn(`Prize image ${prizeFile} not found, using heart as fallback`);
-				if (!prizeImages['heart']) {
+				console.warn(`Prize image ${prizeFile} not found, will use colored star fallback`);
+				// Don't add to prizeImages - let the drawing code use star fallback
+				// Only add heart if it's specifically the heart prize
+				if (prizeId === 'heart' && !prizeImages['heart']) {
 					const heartImg = document.getElementById('heart');
 					if (heartImg) {
 						prizeImages[prizeId] = heartImg;

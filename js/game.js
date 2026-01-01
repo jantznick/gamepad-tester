@@ -6,6 +6,7 @@ import { CONFIG, CHARACTER_DATA } from './config.js';
 import { getPlayerMovement } from './input.js';
 import { updateScoreDisplay } from './ui.js';
 import { stopSelectionCountdown, autoAssignForManualStart } from './selection.js';
+import { initGameMode, updateRaceProgress, stopGameTimer } from './gamemode.js';
 
 let canvas, ctx;
 let animationFrame = null;
@@ -67,6 +68,9 @@ export function startGame() {
 	// Update UI
 	updateScoreDisplay(newPlayers);
 	
+	// Initialize game mode
+	initGameMode();
+	
 	// Start game loop
 	gameLoop();
 	
@@ -76,7 +80,18 @@ export function startGame() {
 }
 
 export function exitGame() {
+	const state = gameState.getState();
+	
+	// Reset scores
+	const resetPlayers = state.players.map(player => ({
+		...player,
+		score: 0,
+		x: player.id === 0 ? 100 : 300,
+		y: 100
+	}));
+	
 	gameState.updateState('phase', 'start');
+	gameState.updateState('players', resetPlayers);
 	
 	if (animationFrame) {
 		cancelAnimationFrame(animationFrame);
@@ -84,6 +99,22 @@ export function exitGame() {
 	}
 	
 	stopSelectionCountdown();
+	stopGameTimer();
+	
+	// Hide game over overlay
+	document.getElementById('game-over-overlay').classList.add('hidden');
+	
+	// Update UI
+	import('./ui.js').then(module => {
+		module.updateScoreDisplay(resetPlayers);
+		module.updateSelectedDisplay(resetPlayers);
+	});
+	
+	// Reset race progress bars
+	const player1Progress = document.getElementById('player1-progress');
+	const player2Progress = document.getElementById('player2-progress');
+	if (player1Progress) player1Progress.style.width = '0%';
+	if (player2Progress) player2Progress.style.width = '0%';
 	
 	// Fullscreen functionality (commented out)
 	// Uncomment below if you want to enable fullscreen mode
@@ -99,23 +130,24 @@ function generatePrizes() {
 	const state = gameState.getState();
 	const prizes = [];
 	
-	// Only generate prizes for players that have selected characters
-	state.players.forEach((player) => {
-		if (player.character) {
-			const charData = CHARACTER_DATA[player.character];
-			if (charData) {
-				const prizeType = charData.prizeType;
-				// Use prize image if available, otherwise use prizeType as fallback
-				const prizeImageId = charData.prize ? charData.prize.replace('.png', '') : prizeType;
-				
-				for (let i = 0; i < CONFIG.numPrizes; i++) {
-					prizes.push(new Prize(
-						Math.random() * (canvas.width - CONFIG.prizeSize),
-						Math.random() * (canvas.height - CONFIG.prizeSize),
-						prizeType,
-						prizeImageId
-					));
-				}
+	// Generate prizes for each player that has selected a character
+	// Each player gets CONFIG.numPrizes prizes of their prize type
+	const playersWithChars = state.players.filter(p => p.character);
+	
+	playersWithChars.forEach((player) => {
+		const charData = CHARACTER_DATA[player.character];
+		if (charData) {
+			const prizeType = charData.prizeType;
+			// Use prize image if available, otherwise use prizeType as fallback
+			const prizeImageId = charData.prize ? charData.prize.replace('.png', '') : prizeType;
+			
+			for (let i = 0; i < CONFIG.numPrizes; i++) {
+				prizes.push(new Prize(
+					Math.random() * (canvas.width - CONFIG.prizeSize),
+					Math.random() * (canvas.height - CONFIG.prizeSize),
+					prizeType,
+					prizeImageId
+				));
 			}
 		}
 	});
@@ -137,11 +169,23 @@ function generatePrizes() {
 
 function gameLoop() {
 	const state = gameState.getState();
-	if (state.phase !== 'playing') return;
+	if (state.phase !== 'playing') {
+		// Stop the loop if game ended
+		if (animationFrame) {
+			cancelAnimationFrame(animationFrame);
+			animationFrame = null;
+		}
+		return;
+	}
 	
 	updateMovement();
 	checkCollisions();
 	draw();
+	
+	// Update race progress if in race mode (checkCollisions already calls this, but keep for safety)
+	if (state.gameMode === 'race') {
+		updateRaceProgress();
+	}
 	
 	animationFrame = requestAnimationFrame(gameLoop);
 }
@@ -154,14 +198,63 @@ function updateMovement() {
 		const { dx, dy } = getPlayerMovement(index);
 		
 		if (dx !== 0 || dy !== 0) {
-			let newX = (player.x || 100) + dx;
-			let newY = (player.y || 100) + dy;
+			// Don't use || here - 0 is a valid position!
+			const oldX = player.x !== undefined && player.x !== null ? player.x : 100;
+			const oldY = player.y !== undefined && player.y !== null ? player.y : 100;
+			let newX = oldX + dx;
+			let newY = oldY + dy;
 			
-			// Check bounds
-			if (newX < 0) newX = canvas.width;
-			if (newX > canvas.width) newX = 0;
-			if (newY < 0) newY = canvas.height;
-			if (newY > canvas.height) newY = 0;
+			const charSize = CONFIG.characterSize;
+			
+			// DEBUG: Log when approaching edges or would go negative
+			if (dx < 0) {
+				if (newX < 50 || newX < 0) {
+					console.log(`MOVING LEFT: oldX=${oldX}, dx=${dx}, newX=${newX}, newX+charSize=${newX + charSize}, canvas.width=${canvas.width}, charSize=${charSize}`);
+					console.log(`  -> Would be negative? ${newX < 0}, Condition: newX < -charSize? ${newX < -charSize} (${newX} < ${-charSize})`);
+				}
+			}
+			if (dx > 0 && newX > canvas.width - 50) {
+				console.log(`MOVING RIGHT: oldX=${oldX}, dx=${dx}, newX=${newX}, newX+charSize=${newX + charSize}, canvas.width=${canvas.width}, charSize=${charSize}`);
+				console.log(`  -> Condition: newX > canvas.width + charSize? ${newX > canvas.width + charSize} (${newX} > ${canvas.width + charSize})`);
+			}
+			
+			// Horizontal wrapping: allow character to go completely off screen, then wrap
+			if (newX > canvas.width + charSize) {
+				console.log(`WRAP RIGHT->LEFT: oldX=${oldX}, newX=${newX}, canvas.width=${canvas.width}, charSize=${charSize}`);
+				// Completely off right side, wrap to left (coming in from left)
+				newX = -charSize;
+				console.log(`  -> Wrapped to: newX=${newX}`);
+			} else if (newX < -charSize) {
+				console.log(`WRAP LEFT->RIGHT: oldX=${oldX}, newX=${newX}, canvas.width=${canvas.width}, charSize=${charSize}`);
+				// Completely off left side, wrap to right (coming in from right)
+				newX = canvas.width;
+				console.log(`  -> Wrapped to: newX=${newX}`);
+			}
+			
+			// DEBUG: Check if newX would be negative but isn't
+			if (dx < 0 && oldX + dx < 0 && newX >= 0) {
+				console.log(`WOULD BE NEGATIVE BUT ISN'T: oldX=${oldX}, dx=${dx}, calculated=${oldX + dx}, actual newX=${newX}`);
+			}
+			
+			// DEBUG: Log the actual value being returned when near left edge
+			if (dx < 0 && newX <= 10) {
+				console.log(`RETURNING POSITION: x=${newX}, y=${newY} (was oldX=${oldX}, dx=${dx})`);
+			}
+			
+			// Vertical wrapping: allow character to go completely off screen, then wrap
+			// Moving DOWN: wrap when completely off bottom, appear coming in from top
+			if (newY > canvas.height + charSize) {
+				newY = -charSize;
+			}
+			// Moving UP: wrap when completely off top, appear coming in from bottom
+			else if (newY < -charSize) {
+				newY = canvas.height;
+			}
+			
+			// DEBUG: Log final position if it changed significantly
+			if (Math.abs(newX - oldX) > 100 || Math.abs(newY - oldY) > 100) {
+				console.log(`LARGE POSITION CHANGE: oldX=${oldX}, newX=${newX}, oldY=${oldY}, newY=${newY}`);
+			}
 			
 			return { ...player, x: newX, y: newY };
 		}
@@ -174,9 +267,9 @@ function updateMovement() {
 
 function checkCollisions() {
 	const state = gameState.getState();
-	let prizes = state.prizes.filter(prize => !prize.isExpired);
+	let prizes = [...state.prizes];
 	
-	// Update prize timers
+	// Update prize timers and mark expired ones
 	prizes.forEach(prize => prize.update());
 	
 	// Check collisions
@@ -209,6 +302,11 @@ function checkCollisions() {
 				gameState.updateState('players', newPlayers);
 				updateScoreDisplay(newPlayers);
 				
+				// Check for race mode win condition
+				if (state.gameMode === 'race') {
+					updateRaceProgress();
+				}
+				
 				// Respawn prize
 				prize.x = Math.random() * (canvas.width - CONFIG.prizeSize);
 				prize.y = Math.random() * (canvas.height - CONFIG.prizeSize);
@@ -222,39 +320,51 @@ function checkCollisions() {
 	// Remove expired prizes
 	prizes = prizes.filter(prize => !prize.isExpired);
 	
-	// Keep minimum number of prizes
-	if (prizes.length < CONFIG.numPrizes) {
-		generateAdditionalPrizes(prizes);
-	}
+	// Always ensure we have the correct number of prizes per player type
+	prizes = generateAdditionalPrizes(prizes);
 	
 	gameState.updateState('prizes', prizes);
 }
 
 function generateAdditionalPrizes(existingPrizes) {
 	const state = gameState.getState();
-	const needed = CONFIG.numPrizes - existingPrizes.length;
-	if (needed <= 0) return existingPrizes;
-	
 	const playersWithChars = state.players.filter(p => p.character);
 	if (playersWithChars.length === 0) return existingPrizes;
 	
-	const prizesPerPlayer = Math.ceil(needed / playersWithChars.length);
+	// Count how many prizes of each type we currently have
+	const prizeCountsByType = {};
+	existingPrizes.forEach(prize => {
+		prizeCountsByType[prize.type] = (prizeCountsByType[prize.type] || 0) + 1;
+	});
+	
+	// Determine how many prizes each player type should have
+	const targetPrizesPerPlayer = CONFIG.numPrizes;
 	const newPrizes = [...existingPrizes];
 	
+	// For each player, ensure they have the target number of prizes
 	playersWithChars.forEach((player) => {
 		const charData = CHARACTER_DATA[player.character];
 		if (!charData) return;
-		const prizeType = charData.prizeType;
-		// Use prize image if available, otherwise use prizeType as fallback
-		const prizeImageId = charData.prize ? charData.prize.replace('.png', '') : prizeType;
 		
-		for (let i = 0; i < prizesPerPlayer && newPrizes.length < CONFIG.numPrizes; i++) {
-			newPrizes.push(new Prize(
-				Math.random() * (canvas.width - CONFIG.prizeSize),
-				Math.random() * (canvas.height - CONFIG.prizeSize),
-				prizeType,
-				prizeImageId
-			));
+		const prizeType = charData.prizeType;
+		const currentCount = prizeCountsByType[prizeType] || 0;
+		const needed = targetPrizesPerPlayer - currentCount;
+		
+		if (needed > 0) {
+			// Use prize image if available, otherwise use prizeType as fallback
+			const prizeImageId = charData.prize ? charData.prize.replace('.png', '') : prizeType;
+			
+			for (let i = 0; i < needed; i++) {
+				newPrizes.push(new Prize(
+					Math.random() * (canvas.width - CONFIG.prizeSize),
+					Math.random() * (canvas.height - CONFIG.prizeSize),
+					prizeType,
+					prizeImageId
+				));
+			}
+			
+			// Update count for next iteration
+			prizeCountsByType[prizeType] = targetPrizesPerPlayer;
 		}
 	});
 	
@@ -282,8 +392,11 @@ function draw() {
 		const size = CONFIG.prizeSize * scale;
 		const offset = (CONFIG.prizeSize - size) / 2;
 		
+		// Try to get the prize image from loaded images
 		let prizeImg = prizeImages[prize.prizeImage];
-		if (!prizeImg) {
+		
+		// If not found in prizeImages, try to get from DOM (for heart.png that's in HTML)
+		if (!prizeImg && prize.prizeImage === 'heart') {
 			prizeImg = document.getElementById('heart');
 		}
 		
@@ -295,12 +408,13 @@ function draw() {
 			ctx.globalAlpha = opacity;
 		}
 		
+		// If we have a valid prize image, draw it
 		if (prizeImg && prizeImg.complete) {
 			ctx.drawImage(prizeImg, prize.x + offset, prize.y + offset, size, size);
 		} else {
 			// Fallback: draw colored star based on which player's prize type it is
-			const state = gameState.getState();
-			const player = state.players.find(p => {
+			const currentState = gameState.getState();
+			const player = currentState.players.find(p => {
 				if (!p.character) return false;
 				const charData = CHARACTER_DATA[p.character];
 				return charData && charData.prizeType === prize.type;

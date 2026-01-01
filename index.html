@@ -47,6 +47,22 @@
 					</div>
 				</div>
 
+				<!-- Game Mode Selection -->
+				<div class="mb-4">
+					<h3 class="text-lg font-semibold mb-3 text-gray-800 text-center">Game Mode</h3>
+					<div class="flex flex-wrap gap-3 justify-center">
+						<button onclick="selectGameMode('freeplay')" data-mode="freeplay" class="game-mode-btn px-6 py-3 bg-purple-200 rounded-lg hover:bg-purple-300 transition font-medium border-4 border-transparent">
+							Free Play
+						</button>
+						<button onclick="selectGameMode('race')" data-mode="race" class="game-mode-btn px-6 py-3 bg-purple-200 rounded-lg hover:bg-purple-300 transition font-medium border-4 border-transparent">
+							Race (First to 15)
+						</button>
+						<button onclick="selectGameMode('countdown')" data-mode="countdown" class="game-mode-btn px-6 py-3 bg-purple-200 rounded-lg hover:bg-purple-300 transition font-medium border-4 border-transparent">
+							Countdown (60s)
+						</button>
+					</div>
+				</div>
+
 				<!-- Countdown Display -->
 				<div id="selection-countdown" class="text-center mt-4 hidden"></div>
 				
@@ -76,10 +92,43 @@
 				<div class="text-lg font-bold"><span id="player2-score">Loading...</span></div>
 			</div>
 			
+			<!-- Game Mode UI (Center) -->
+			<div id="game-mode-ui-container" class="bg-black bg-opacity-50 text-white p-4 rounded-lg hidden">
+				<!-- Countdown Timer (for countdown mode) -->
+				<div id="game-timer" class="text-3xl font-bold text-center hidden">60</div>
+				
+				<!-- Race Progress Bars (for race mode) -->
+				<div id="race-progress" class="hidden">
+					<div class="mb-2">
+						<div class="text-sm mb-1">Player 1</div>
+						<div class="w-64 h-6 bg-gray-700 rounded-full overflow-hidden">
+							<div id="player1-progress" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
+						</div>
+					</div>
+					<div>
+						<div class="text-sm mb-1">Player 2</div>
+						<div class="w-64 h-6 bg-gray-700 rounded-full overflow-hidden">
+							<div id="player2-progress" class="h-full bg-green-500 transition-all duration-300" style="width: 0%"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
 			<!-- Exit Button -->
 			<button onclick="exitGame()" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition font-bold">
 				Exit Game (ESC)
 			</button>
+		</div>
+		
+		<!-- Game Over Overlay -->
+		<div id="game-over-overlay" class="hidden absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+			<div class="bg-white rounded-lg p-8 text-center">
+				<h2 id="game-over-title" class="text-4xl font-bold mb-4"></h2>
+				<div id="game-over-scores" class="text-2xl mb-6"></div>
+				<button onclick="exitGame()" class="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-xl font-bold">
+					Back to Menu
+				</button>
+			</div>
 		</div>
 	</div>
 

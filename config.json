@@ -31,6 +31,7 @@
 		{
 			"id": "bluey",
 			"image": "bluey.png",
+            "prize": "bone.png",
 			"prizeType": "bone",
 			"playerName": "Bluey"
 		},
@@ -38,8 +39,16 @@
 			"id": "rumi",
 			"image": "rumi.png",
 			"prizeType": "star",
+            "prize": "cupnoodles.png",
 			"playerName": "Rumi"
-		}
+		},
+        {
+            "id": "judyhops",
+            "image": "judyhops.png",
+            "prize": "carrot.png",
+            "prizeType": "carrot",
+            "playerName": "Judy Hopps"
+        }
 	],
 	"gameSettings": {
 		"characterSize": 200,

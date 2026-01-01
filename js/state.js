@@ -2,8 +2,11 @@
 class GameState {
 	constructor() {
 		this.state = {
-			// Game phase: 'start', 'playing', 'paused'
+			// Game phase: 'start', 'playing', 'paused', 'ended'
 			phase: 'start',
+			
+			// Game mode: 'freeplay', 'race', 'countdown'
+			gameMode: 'freeplay',
 			
 			// Players (with positions)
 			players: [
@@ -17,6 +20,15 @@ class GameState {
 				time: 15,
 				interval: null
 			},
+			
+			// Game timer (for countdown mode)
+			gameTimer: {
+				time: 60,
+				startTime: null
+			},
+			
+			// Race mode settings
+			raceTarget: 15,
 			
 			// Gamepads
 			gamepads: [],

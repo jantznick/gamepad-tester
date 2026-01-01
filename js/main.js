@@ -5,6 +5,7 @@ import { updateCharacterSelectionUI, updateCharacterButtons, updateSelectedDispl
 import { selectCharacter } from './selection.js';
 import { setupInputHandlers } from './input.js';
 import { initGame, startGame, setPrizeImages } from './game.js';
+import { selectGameMode } from './gamemode.js';
 
 // Make selectCharacter available globally for onclick handlers
 window.selectCharacter = (playerIndex, characterName) => {
@@ -58,6 +59,9 @@ async function init() {
 	updateSelectedDisplay(initialState.players);
 	updateStartButton(initialState.players);
 	updateGamepadStatus(initialState.gamepads);
+	
+	// Set default game mode to freeplay
+	selectGameMode('freeplay');
 }
 
 // Initialize when DOM is ready

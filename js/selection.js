@@ -61,21 +61,26 @@ export function startSelectionCountdown() {
 		
 		updateCountdownDisplay({ active: true, time: newTime });
 		
-		if (newTime <= 0) {
-			stopSelectionCountdown();
-			// Auto-assign only when countdown expires (not on manual start)
-			autoAssignUnselectedPlayer();
-			// Auto-start after a brief delay
-			setTimeout(() => {
-				const finalState = gameState.getState();
-				if (finalState.players[0].character && finalState.players[1].character) {
-					// Import startGame dynamically to avoid circular dependency
-					import('./game.js').then(module => {
-						module.startGame();
-					});
+			if (newTime <= 0) {
+				stopSelectionCountdown();
+				// Auto-assign only when countdown expires (not on manual start)
+				autoAssignUnselectedPlayer();
+				// Set default mode to freeplay if countdown auto-starts
+				const currentState = gameState.getState();
+				if (!currentState.gameMode || currentState.gameMode === 'freeplay') {
+					gameState.updateState('gameMode', 'freeplay');
 				}
-			}, 500);
-		}
+				// Auto-start after a brief delay
+				setTimeout(() => {
+					const finalState = gameState.getState();
+					if (finalState.players[0].character && finalState.players[1].character) {
+						// Import startGame dynamically to avoid circular dependency
+						import('./game.js').then(module => {
+							module.startGame();
+						});
+					}
+				}, 500);
+			}
 	}, 1000);
 }
 
