@@ -79,7 +79,8 @@ export async function loadPrizeImages() {
 	const promises = Array.from(prizeTypes).filter(prizeFile => prizeFile).map(prizeFile => {
 		return new Promise((resolve) => {
 			const img = new Image();
-			const prizeId = prizeFile.replace('.png', '');
+			// Extract just the filename without path and extension (e.g., "images/prizes/heart.png" -> "heart")
+			const prizeId = prizeFile.split('/').pop().replace('.png', '');
 			img.id = `prize-${prizeId}`;
 			img.src = prizeFile;
 			img.onload = () => {
@@ -96,6 +97,7 @@ export async function loadPrizeImages() {
 				// Don't add to prizeImages - let the drawing code use star fallback
 				// Only add heart if it's specifically the heart prize
 				if (prizeId === 'heart' && !prizeImages['heart']) {
+					// Try to get heart image from DOM (preloaded in HTML)
 					const heartImg = document.getElementById('heart');
 					if (heartImg) {
 						prizeImages[prizeId] = heartImg;

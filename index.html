@@ -30,7 +30,10 @@
 						</div>
 						<div class="text-center">
 							<div id="player1-selected" class="text-lg font-semibold text-gray-600 mb-2">Tap a character!</div>
-							<div class="text-xs text-gray-500">Controls: Arrow Keys or Gamepad 1</div>
+							<div class="text-xs text-gray-500 mb-2">Controls: Arrow Keys or Gamepad 1</div>
+							<button id="player1-deselect" onclick="deselectCharacter(0)" class="hidden px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm font-bold">
+								Deselect Character
+							</button>
 						</div>
 					</div>
 
@@ -42,7 +45,10 @@
 						</div>
 						<div class="text-center">
 							<div id="player2-selected" class="text-lg font-semibold text-gray-600 mb-2">Tap a character!</div>
-							<div class="text-xs text-gray-500">Controls: WASD Keys or Gamepad 2</div>
+							<div class="text-xs text-gray-500 mb-2">Controls: WASD Keys or Gamepad 2</div>
+							<button id="player2-deselect" onclick="deselectCharacter(1)" class="hidden px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm font-bold">
+								Deselect Character
+							</button>
 						</div>
 					</div>
 				</div>
@@ -115,9 +121,25 @@
 			</div>
 			
 			<!-- Exit Button -->
-			<button onclick="exitGame()" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition font-bold">
+			<button onclick="requestExitGame()" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition font-bold">
 				Exit Game (ESC)
 			</button>
+			
+			<!-- Exit Confirmation Modal -->
+			<div id="exit-confirmation-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+				<div class="bg-white rounded-lg p-8 text-center max-w-md">
+					<h2 class="text-3xl font-bold mb-4 text-gray-800">Exit Game?</h2>
+					<p class="text-lg text-gray-600 mb-6">Are you sure you want to exit? Your progress will be lost.</p>
+					<div class="flex gap-4 justify-center">
+						<button onclick="confirmExitGame()" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-lg font-bold">
+							Yes, Exit
+						</button>
+						<button onclick="cancelExitGame()" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition text-lg font-bold">
+							Cancel
+						</button>
+					</div>
+				</div>
+			</div>
 		</div>
 		
 		<!-- Game Over Overlay -->
@@ -134,9 +156,9 @@
 
 	<!-- Hidden Images -->
 	<div style="display:none;">
-		<img id="moana" src="moana.png" alt="Moana">
-		<img id="heihei" src="heihei.png" alt="Hei Hei">
-		<img id="heart" src="heart.png" alt="Heart">
+		<img id="moana" src="images/characters/moana.png" alt="Moana">
+		<img id="heihei" src="images/characters/heihei.png" alt="Hei Hei">
+		<img id="heart" src="images/prizes/heart.png" alt="Heart">
 	</div>
 
 	<script type="module" src="js/main.js"></script>

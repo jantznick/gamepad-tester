@@ -17,6 +17,32 @@ window.startGame = () => {
 	startGame();
 };
 
+// Make deselectCharacter available globally
+window.deselectCharacter = (playerIndex) => {
+	import('./selection.js').then(module => {
+		module.deselectCharacter(playerIndex);
+	});
+};
+
+// Make exit game functions available globally
+window.requestExitGame = () => {
+	import('./game.js').then(module => {
+		module.requestExitGame();
+	});
+};
+
+window.confirmExitGame = () => {
+	import('./game.js').then(module => {
+		module.confirmExitGame();
+	});
+};
+
+window.cancelExitGame = () => {
+	import('./game.js').then(module => {
+		module.cancelExitGame();
+	});
+};
+
 async function init() {
 	// Load configuration
 	const { config, characterData } = await loadConfig();
@@ -39,6 +65,11 @@ async function init() {
 	// Initialize UI
 	updateCharacterSelectionUI();
 	
+	// Clear any game mode selection styling on startup
+	import('./gamemode.js').then(module => {
+		module.clearGameModeSelection();
+	});
+	
 	// Setup input handlers
 	setupInputHandlers();
 	
@@ -51,6 +82,8 @@ async function init() {
 		updateSelectedDisplay(state.players);
 		updateStartButton(state.players);
 		updateGamepadStatus(state.gamepads);
+		// Re-generate character buttons when players change to update "taken" status
+		updateCharacterSelectionUI();
 	});
 	
 	// Initial UI update
@@ -60,8 +93,33 @@ async function init() {
 	updateStartButton(initialState.players);
 	updateGamepadStatus(initialState.gamepads);
 	
-	// Set default game mode to freeplay
-	selectGameMode('freeplay');
+	// Highlight first available character for each player
+	initialState.players.forEach((player, playerIndex) => {
+		if (!player.character) {
+			const availableChars = initialState.availableCharacters || CONFIG.availableCharacters;
+			const otherPlayerIndex = playerIndex === 0 ? 1 : 0;
+			const otherPlayer = initialState.players[otherPlayerIndex];
+			
+			// Find first character not taken by other player
+			for (let i = 0; i < availableChars.length; i++) {
+				if (availableChars[i] !== otherPlayer.character) {
+					import('./selection.js').then(module => {
+						// Initialize the selected index
+						if (typeof module.selectedCharacterIndex === 'undefined') {
+							module.selectedCharacterIndex = {};
+						}
+						module.selectedCharacterIndex[playerIndex] = i;
+						import('./ui.js').then(uiModule => {
+							uiModule.highlightCharacter(playerIndex, i);
+						});
+					});
+					break;
+				}
+			}
+		}
+	});
+	
+	// Don't set default game mode - players must select it manually or wait for countdown
 }
 
 // Initialize when DOM is ready

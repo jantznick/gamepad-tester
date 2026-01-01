@@ -6,12 +6,12 @@ Each character in the `config.json` file needs these fields:
 
 ### Required Fields:
 - **`id`**: Unique identifier (lowercase, no spaces) - e.g., `"moana"`, `"spidey"`
-- **`image`**: Filename of the character image - e.g., `"moana.png"` (must exist in the same folder)
+- **`image`**: Path to the character image - e.g., `"images/characters/moana.png"` (must exist in `images/characters/` folder)
 - **`prizeType`**: Type of prize this character collects - e.g., `"heart"`, `"star"`, `"web"`, `"bone"`
 - **`playerName`**: Display name shown in the game - e.g., `"Moana"`, `"Spidey"`
 
 ### Optional Fields:
-- **`prize`**: Filename of the prize image - e.g., `"heart.png"`, `"star.png"`
+- **`prize`**: Path to the prize image - e.g., `"images/prizes/heart.png"` (should exist in `images/prizes/` folder)
   - If you don't provide this, the game will automatically draw a colored star:
     - Blue star for Player 1
     - Green star for Player 2
@@ -23,8 +23,8 @@ Each character in the `config.json` file needs these fields:
 ```json
 {
 	"id": "moana",
-	"image": "moana.png",
-	"prize": "heart.png",
+	"image": "images/characters/moana.png",
+	"prize": "images/prizes/heart.png",
 	"prizeType": "heart",
 	"playerName": "Moana"
 }
@@ -33,10 +33,10 @@ Each character in the `config.json` file needs these fields:
 ### Character without prize image (uses colored star):
 ```json
 {
-	"id": "bluey",
-	"image": "bluey.png",
-	"prizeType": "bone",
-	"playerName": "Bluey"
+	"id": "blaze",
+	"image": "images/characters/blaze.png",
+	"prizeType": "star",
+	"playerName": "Blaze"
 }
 ```
 
@@ -44,8 +44,8 @@ Each character in the `config.json` file needs these fields:
 ```json
 {
 	"id": "spidey",
-	"image": "spidey.png",
-	"prize": "web.png",
+	"image": "images/characters/spidey.png",
+	"prize": "images/prizes/web.png",
 	"prizeType": "web",
 	"playerName": "Spidey"
 }
@@ -61,8 +61,10 @@ The `prizeType` determines which prizes a character can collect:
 
 ## Notes
 
-- Character images must exist in the same folder as `index.html`
+- Character images must be placed in `images/characters/` folder
+- Prize images should be placed in `images/prizes/` folder
 - Prize images are optional - if missing, colored stars are drawn automatically
 - The game will automatically detect which characters have valid images and only show those
 - You can add as many characters as you want!
+- Image paths in `config.json` should be relative to the project root (e.g., `images/characters/moana.png`)
 

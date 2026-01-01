@@ -26,11 +26,27 @@ function setupCanvas() {
 export function startGame() {
 	const state = gameState.getState();
 	
-	// Check if at least one player has selected
-	if (!state.players[0].character && !state.players[1].character) {
-		alert('At least one player must select a character!');
+	// Check if at least one player is ready to play
+	const readyPlayers = state.players.filter(p => p.gameState === 'waitingToStart' || p.gameState === 'playing');
+	if (readyPlayers.length === 0) {
+		alert('At least one player must be ready to play!');
 		return;
 	}
+	
+	// Move all waitingToStart players to playing
+	const newPlayers = state.players.map(p => {
+		if (p.gameState === 'waitingToStart') {
+			return { ...p, gameState: 'playing' };
+		}
+		return p;
+	});
+	gameState.updateState('players', newPlayers);
+	
+	doStartGame();
+}
+
+function doStartGame() {
+	const state = gameState.getState();
 	
 	// Don't auto-assign on manual start - only when countdown expires
 	// The user should be able to start with just one player if they want
@@ -48,14 +64,24 @@ export function startGame() {
 	if (startScreen) startScreen.classList.add('hidden');
 	if (gameScreen) gameScreen.classList.remove('hidden');
 	
-	// Reset player positions
+	// Reset player positions - only for players who are playing
 	const finalState = gameState.getState();
-	const newPlayers = finalState.players.map((player, index) => ({
-		...player,
-		x: 100 + (index * 200),
-		y: 100,
-		score: player.score || 0
-	}));
+	let positionOffset = 0;
+	const newPlayers = finalState.players.map((player, index) => {
+		// Only reset position if player is in playing state
+		if (player.gameState === 'playing') {
+			const updated = {
+				...player,
+				x: 100 + (positionOffset * 200),
+				y: 100,
+				score: player.score || 0
+			};
+			positionOffset++;
+			return updated;
+		}
+		// Keep non-playing players as-is (they won't be drawn or controlled)
+		return player;
+	});
 	
 	gameState.updateState('players', newPlayers);
 	
@@ -79,24 +105,87 @@ export function startGame() {
 	// enterFullscreen();
 }
 
+let isPaused = false;
+let pausedAnimationFrame = null;
+
+export function requestExitGame() {
+	const state = gameState.getState();
+	
+	// If game is playing, pause it and show confirmation
+	if (state.phase === 'playing') {
+		isPaused = true;
+		if (animationFrame) {
+			cancelAnimationFrame(animationFrame);
+			pausedAnimationFrame = animationFrame;
+			animationFrame = null;
+		}
+		
+		// Show confirmation modal
+		const modal = document.getElementById('exit-confirmation-modal');
+		if (modal) {
+			modal.classList.remove('hidden');
+		}
+	} else {
+		// Not playing, just exit
+		exitGame();
+	}
+}
+
+export function confirmExitGame() {
+	// Hide modal
+	const modal = document.getElementById('exit-confirmation-modal');
+	if (modal) {
+		modal.classList.add('hidden');
+	}
+	
+	isPaused = false;
+	pausedAnimationFrame = null;
+	
+	// Exit the game
+	exitGame();
+}
+
+export function cancelExitGame() {
+	// Hide modal
+	const modal = document.getElementById('exit-confirmation-modal');
+	if (modal) {
+		modal.classList.add('hidden');
+	}
+	
+	// Resume game
+	isPaused = false;
+	if (pausedAnimationFrame) {
+		animationFrame = pausedAnimationFrame;
+		pausedAnimationFrame = null;
+		gameLoop();
+	}
+}
+
 export function exitGame() {
 	const state = gameState.getState();
 	
-	// Reset scores
+	// Reset scores and clear character selections, but keep gamepad assignments
 	const resetPlayers = state.players.map(player => ({
 		...player,
 		score: 0,
+		character: null, // Clear character selection
+		gameState: 'characterSelection', // Reset to character selection
 		x: player.id === 0 ? 100 : 300,
 		y: 100
+		// Keep gamepadIndex - don't clear it
 	}));
 	
 	gameState.updateState('phase', 'start');
 	gameState.updateState('players', resetPlayers);
+	gameState.updateState('gameMode', null); // Reset game mode to null
 	
 	if (animationFrame) {
 		cancelAnimationFrame(animationFrame);
 		animationFrame = null;
 	}
+	
+	isPaused = false;
+	pausedAnimationFrame = null;
 	
 	stopSelectionCountdown();
 	stopGameTimer();
@@ -104,10 +193,23 @@ export function exitGame() {
 	// Hide game over overlay
 	document.getElementById('game-over-overlay').classList.add('hidden');
 	
+	// Hide exit confirmation modal
+	const modal = document.getElementById('exit-confirmation-modal');
+	if (modal) {
+		modal.classList.add('hidden');
+	}
+	
+	// Clear game mode selection styling
+	import('./gamemode.js').then(module => {
+		module.clearGameModeSelection();
+	});
+	
 	// Update UI
 	import('./ui.js').then(module => {
 		module.updateScoreDisplay(resetPlayers);
 		module.updateSelectedDisplay(resetPlayers);
+		// Regenerate character buttons to show first available highlighted
+		module.updateCharacterSelectionUI();
 	});
 	
 	// Reset race progress bars
@@ -139,7 +241,8 @@ function generatePrizes() {
 		if (charData) {
 			const prizeType = charData.prizeType;
 			// Use prize image if available, otherwise use prizeType as fallback
-			const prizeImageId = charData.prize ? charData.prize.replace('.png', '') : prizeType;
+			// Extract just the filename without path and extension (e.g., "images/prizes/heart.png" -> "heart")
+			const prizeImageId = charData.prize ? charData.prize.split('/').pop().replace('.png', '') : prizeType;
 			
 			for (let i = 0; i < CONFIG.numPrizes; i++) {
 				prizes.push(new Prize(
@@ -193,7 +296,8 @@ function gameLoop() {
 function updateMovement() {
 	const state = gameState.getState();
 	const newPlayers = state.players.map((player, index) => {
-		if (!player.character) return player;
+		// Only update movement for players who are playing
+		if (player.gameState !== 'playing') return player;
 		
 		const { dx, dy } = getPlayerMovement(index);
 		
@@ -277,7 +381,8 @@ function checkCollisions() {
 		if (prize.isExpired) return;
 		
 		state.players.forEach((player) => {
-			if (!player.character) return;
+			// Only check collisions for players who are playing
+			if (player.gameState !== 'playing') return;
 			
 			const charData = CHARACTER_DATA[player.character];
 			const prizeType = charData.prizeType;

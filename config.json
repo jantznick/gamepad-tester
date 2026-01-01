@@ -2,50 +2,50 @@
 	"characters": [
 		{
 			"id": "moana",
-			"image": "moana.png",
-			"prize": "heart.png",
+			"image": "images/characters/moana.png",
+			"prize": "images/prizes/heart.png",
 			"prizeType": "heart",
 			"playerName": "Moana"
 		},
 		{
 			"id": "heihei",
-			"image": "heihei.png",
-			"prize": "heart.png",
+			"image": "images/characters/heihei.png",
+			"prize": "images/prizes/heart.png",
 			"prizeType": "heart",
 			"playerName": "Hei Hei"
 		},
 		{
 			"id": "blaze",
-			"image": "blaze.png",
+			"image": "images/characters/blaze.png",
 			"prize": "star.png",
 			"prizeType": "star",
 			"playerName": "Blaze"
 		},
 		{
 			"id": "spidey",
-			"image": "spidey.png",
-			"prize": "web.png",
+			"image": "images/characters/spidey.png",
+			"prize": "images/prizes/web.png",
 			"prizeType": "web",
 			"playerName": "Spidey"
 		},
 		{
 			"id": "bluey",
-			"image": "bluey.png",
-            "prize": "bone.png",
+			"image": "images/characters/bluey.png",
+            "prize": "images/prizes/bone.png",
 			"prizeType": "bone",
 			"playerName": "Bluey"
 		},
 		{
 			"id": "rumi",
-			"image": "rumi.png",
+			"image": "images/characters/rumi.png",
 			"prizeType": "star",
-            "prize": "cupnoodles.png",
+            "prize": "images/prizes/demon.png",
 			"playerName": "Rumi"
 		},
         {
             "id": "judyhops",
-            "image": "judyhops.png",
-            "prize": "carrot.png",
+            "image": "images/characters/judyhops.png",
+            "prize": "images/prizes/carrot.png",
             "prizeType": "carrot",
             "playerName": "Judy Hopps"
         }

@@ -5,13 +5,29 @@ class GameState {
 			// Game phase: 'start', 'playing', 'paused', 'ended'
 			phase: 'start',
 			
-			// Game mode: 'freeplay', 'race', 'countdown'
-			gameMode: 'freeplay',
+			// Game mode: null (not selected), 'freeplay', 'race', 'countdown'
+			gameMode: null,
 			
-			// Players (with positions)
+			// Players (with positions and game state)
 			players: [
-				{ id: 0, character: null, score: 0, gamepadIndex: null, x: 100, y: 100 },
-				{ id: 1, character: null, score: 0, gamepadIndex: null, x: 300, y: 100 }
+				{ 
+					id: 0, 
+					character: null, 
+					score: 0, 
+					gameState: 'characterSelection', // 'characterSelection' | 'modeSelection' | 'waitingToStart' | 'playing'
+					gamepadIndex: null, 
+					x: 100, 
+					y: 100 
+				},
+				{ 
+					id: 1, 
+					character: null, 
+					score: 0, 
+					gameState: 'characterSelection', // 'characterSelection' | 'modeSelection' | 'waitingToStart' | 'playing'
+					gamepadIndex: null, 
+					x: 300, 
+					y: 100 
+				}
 			],
 			
 			// Selection countdown

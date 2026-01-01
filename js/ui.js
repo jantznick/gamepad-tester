@@ -2,30 +2,72 @@
 import { CHARACTER_DATA, CONFIG } from './config.js';
 import gameState from './state.js';
 
+// Export CONFIG for use in other modules
+export { CONFIG };
+
 export function updateCharacterSelectionUI() {
+	const state = gameState.getState();
+	
 	[0, 1].forEach(playerIndex => {
 		const buttonContainer = document.getElementById(`player${playerIndex + 1}-buttons`);
 		if (buttonContainer) {
 			buttonContainer.innerHTML = '';
 			
-			Object.values(CHARACTER_DATA).forEach(char => {
+			const otherPlayerIndex = playerIndex === 0 ? 1 : 0;
+			const otherPlayerCharacter = state.players[otherPlayerIndex].character;
+			const player = state.players[playerIndex];
+			const availableChars = CONFIG.availableCharacters;
+			
+			// Find first available character for this player (not taken, not selected by other)
+			let firstAvailableIndex = -1;
+			for (let i = 0; i < availableChars.length; i++) {
+				if (availableChars[i] !== otherPlayerCharacter) {
+					firstAvailableIndex = i;
+					break;
+				}
+			}
+			
+			Object.values(CHARACTER_DATA).forEach((char, index) => {
 				const button = document.createElement('button');
 				button.onclick = () => window.selectCharacter(playerIndex, char.id);
 				button.setAttribute('data-character', char.id);
 				
 				const isAvailable = CONFIG.availableCharacters.includes(char.id);
+				const isTaken = char.id === otherPlayerCharacter;
+				const isSelected = player.character === char.id;
+				const isFirstAvailable = !player.character && firstAvailableIndex >= 0 && 
+					availableChars.indexOf(char.id) === firstAvailableIndex;
 				
 				const img = document.createElement('img');
 				img.src = char.image;
 				img.alt = char.playerName;
 				img.className = 'w-24 h-24 object-contain';
 				
-				if (isAvailable) {
-					button.className = 'character-btn p-2 rounded-xl border-4 border-transparent hover:border-purple-400 transition-all transform hover:scale-110 cursor-pointer bg-white shadow-md';
-				} else {
+				if (!isAvailable) {
+					// Character not available (not loaded)
 					button.className = 'character-btn p-2 rounded-xl border-4 border-transparent opacity-50 cursor-not-allowed bg-gray-200';
 					button.disabled = true;
 					img.style.filter = 'grayscale(100%)';
+				} else if (isTaken && !isSelected) {
+					// Character taken by other player
+					button.className = 'character-btn p-2 rounded-xl border-4 border-red-300 opacity-60 cursor-not-allowed bg-red-50';
+					button.disabled = true;
+					img.style.filter = 'grayscale(50%)';
+					// Add a visual indicator
+					const overlay = document.createElement('div');
+					overlay.className = 'absolute inset-0 bg-red-500 bg-opacity-30 rounded-xl flex items-center justify-center';
+					overlay.textContent = 'Taken';
+					overlay.style.fontSize = '0.75rem';
+					overlay.style.fontWeight = 'bold';
+					overlay.style.color = 'white';
+					button.style.position = 'relative';
+					button.appendChild(overlay);
+				} else if (isFirstAvailable) {
+					// First available character - highlight it
+					button.className = 'character-btn p-2 rounded-xl border-4 border-blue-500 scale-110 shadow-lg transition-all transform cursor-pointer bg-white';
+				} else {
+					// Character available
+					button.className = 'character-btn p-2 rounded-xl border-4 border-transparent hover:border-purple-400 transition-all transform hover:scale-110 cursor-pointer bg-white shadow-md';
 				}
 				
 				button.appendChild(img);
@@ -39,19 +81,97 @@ export function updateCharacterButtons(players) {
 	players.forEach((player, playerIndex) => {
 		const buttonContainer = document.getElementById(`player${playerIndex + 1}-buttons`);
 		if (buttonContainer) {
+			const otherPlayerIndex = playerIndex === 0 ? 1 : 0;
+			const otherPlayerCharacter = players[otherPlayerIndex].character;
+			
 			const buttons = buttonContainer.querySelectorAll('.character-btn');
 			buttons.forEach((btn) => {
 				const charName = btn.getAttribute('data-character');
-				if (charName === player.character) {
-					btn.classList.remove('border-transparent', 'hover:border-purple-400');
+				const isSelected = charName === player.character;
+				const isTaken = charName === otherPlayerCharacter && !isSelected;
+				
+				if (isSelected) {
+					btn.classList.remove('border-transparent', 'hover:border-purple-400', 'border-blue-500', 'border-red-300', 'opacity-60', 'cursor-not-allowed', 'bg-red-50');
 					btn.classList.add('border-yellow-400', 'border-8', 'scale-125', 'shadow-2xl', 'ring-4', 'ring-yellow-300');
+					btn.disabled = false;
+					// Remove any "Taken" overlay
+					const overlay = btn.querySelector('div');
+					if (overlay) overlay.remove();
+				} else if (isTaken) {
+					// Character taken by other player
+					btn.classList.remove('border-transparent', 'hover:border-purple-400', 'border-blue-500', 'border-yellow-400', 'border-8', 'scale-125', 'shadow-2xl', 'ring-4', 'ring-yellow-300');
+					btn.classList.add('border-red-300', 'opacity-60', 'cursor-not-allowed', 'bg-red-50');
+					btn.disabled = true;
+					// Add "Taken" indicator if not already there
+					if (!btn.querySelector('div')) {
+						const overlay = document.createElement('div');
+						overlay.className = 'absolute inset-0 bg-red-500 bg-opacity-30 rounded-xl flex items-center justify-center';
+						overlay.textContent = 'Taken';
+						overlay.style.fontSize = '0.75rem';
+						overlay.style.fontWeight = 'bold';
+						overlay.style.color = 'white';
+						btn.style.position = 'relative';
+						btn.appendChild(overlay);
+					}
 				} else {
-					btn.classList.remove('border-yellow-400', 'border-8', 'scale-125', 'shadow-2xl', 'ring-4', 'ring-yellow-300');
+					btn.classList.remove('border-yellow-400', 'border-8', 'scale-125', 'shadow-2xl', 'ring-4', 'ring-yellow-300', 'border-blue-500', 'border-red-300', 'opacity-60', 'cursor-not-allowed', 'bg-red-50');
 					if (!btn.disabled) {
 						btn.classList.add('border-transparent', 'hover:border-purple-400');
 					}
+					// Remove any "Taken" overlay
+					const overlay = btn.querySelector('div');
+					if (overlay) overlay.remove();
 				}
 			});
+		}
+	});
+}
+
+export function highlightCharacter(playerIndex, charIndex) {
+	const state = gameState.getState();
+	const availableChars = CONFIG.availableCharacters;
+	if (charIndex < 0 || charIndex >= availableChars.length) return;
+	
+	const buttonContainer = document.getElementById(`player${playerIndex + 1}-buttons`);
+	if (buttonContainer) {
+		const buttons = buttonContainer.querySelectorAll('.character-btn');
+		const targetChar = availableChars[charIndex];
+		const player = state.players[playerIndex];
+		
+		buttons.forEach((btn) => {
+			const charName = btn.getAttribute('data-character');
+			const isSelected = charName === player.character;
+			const isHighlighted = charName === targetChar;
+			
+			if (isSelected) {
+				// Keep selection highlight (yellow)
+				btn.classList.remove('border-transparent', 'hover:border-purple-400', 'border-blue-500', 'scale-110', 'shadow-lg');
+				btn.classList.add('border-yellow-400', 'border-8', 'scale-125', 'shadow-2xl', 'ring-4', 'ring-yellow-300');
+			} else if (isHighlighted) {
+				// Highlight this character (blue)
+				btn.classList.remove('border-transparent', 'hover:border-purple-400', 'border-yellow-400', 'border-8', 'scale-125', 'shadow-2xl', 'ring-4', 'ring-yellow-300');
+				btn.classList.add('border-blue-500', 'border-4', 'scale-110', 'shadow-lg');
+			} else {
+				// Remove all highlights
+				btn.classList.remove('border-blue-500', 'scale-110', 'shadow-lg', 'border-yellow-400', 'border-8', 'scale-125', 'shadow-2xl', 'ring-4', 'ring-yellow-300');
+				if (!btn.disabled) {
+					btn.classList.add('border-transparent', 'hover:border-purple-400');
+				}
+			}
+		});
+	}
+}
+
+export function highlightGameMode(modeIndex) {
+	const modes = ['freeplay', 'race', 'countdown'];
+	if (modeIndex < 0 || modeIndex >= modes.length) return;
+	
+	const buttons = document.querySelectorAll('.game-mode-btn');
+	buttons.forEach((btn, index) => {
+		if (index === modeIndex) {
+			btn.classList.add('ring-4', 'ring-blue-500', 'scale-110');
+		} else {
+			btn.classList.remove('ring-4', 'ring-blue-500', 'scale-110');
 		}
 	});
 }
@@ -70,6 +190,16 @@ export function updateSelectedDisplay(players) {
 		player1Selected.className = charData 
 			? 'text-lg font-semibold text-blue-700 mb-2'
 			: 'text-lg font-semibold text-gray-600 mb-2';
+	}
+	
+	// Show/hide deselect button
+	const player1Deselect = document.getElementById('player1-deselect');
+	if (player1Deselect) {
+		if (players[0].character) {
+			player1Deselect.classList.remove('hidden');
+		} else {
+			player1Deselect.classList.add('hidden');
+		}
 	}
 	
 	if (player1Box && player1Title) {
@@ -98,6 +228,16 @@ export function updateSelectedDisplay(players) {
 			: 'text-lg font-semibold text-gray-600 mb-2';
 	}
 	
+	// Show/hide deselect button
+	const player2Deselect = document.getElementById('player2-deselect');
+	if (player2Deselect) {
+		if (players[1].character) {
+			player2Deselect.classList.remove('hidden');
+		} else {
+			player2Deselect.classList.add('hidden');
+		}
+	}
+	
 	if (player2Box && player2Title) {
 		const charData = players[1].character ? CHARACTER_DATA[players[1].character] : null;
 		if (charData) {
@@ -112,9 +252,22 @@ export function updateSelectedDisplay(players) {
 
 export function updateStartButton(players) {
 	const startButton = document.getElementById('start-button');
-	const atLeastOneSelected = players[0].character || players[1].character;
-	if (startButton) {
-		startButton.disabled = !atLeastOneSelected;
+	if (!startButton) return;
+	
+	const state = gameState.getState();
+	// Check if any players are in waitingToStart state
+	const readyToStart = players.some(p => p.gameState === 'waitingToStart');
+	
+	// Enable start button if any players are ready to start
+	startButton.disabled = !readyToStart;
+	
+	// Highlight the button if ready to start
+	if (readyToStart) {
+		startButton.classList.remove('bg-gray-400', 'disabled:bg-gray-400', 'disabled:cursor-not-allowed');
+		startButton.classList.add('bg-green-500', 'hover:bg-green-600', 'ring-4', 'ring-green-300', 'scale-110', 'transition-all');
+	} else {
+		startButton.classList.remove('bg-green-500', 'hover:bg-green-600', 'ring-4', 'ring-green-300', 'scale-110');
+		startButton.classList.add('bg-gray-400', 'disabled:bg-gray-400', 'disabled:cursor-not-allowed');
 	}
 }
 
@@ -153,8 +306,9 @@ export function updateScoreDisplay(players) {
 		if (players[0].character) {
 			const playerName = CHARACTER_DATA[players[0].character]?.playerName || 'Player 1';
 			player1ScoreEl.textContent = `${playerName}: ${players[0].score || 0}`;
+			player1ScoreEl.style.display = 'block';
 		} else {
-			player1ScoreEl.textContent = 'Select character';
+			player1ScoreEl.style.display = 'none';
 		}
 	}
 	
@@ -162,8 +316,9 @@ export function updateScoreDisplay(players) {
 		if (players[1].character) {
 			const playerName = CHARACTER_DATA[players[1].character]?.playerName || 'Player 2';
 			player2ScoreEl.textContent = `${playerName}: ${players[1].score || 0}`;
+			player2ScoreEl.style.display = 'block';
 		} else {
-			player2ScoreEl.textContent = 'Select character';
+			player2ScoreEl.style.display = 'none';
 		}
 	}
 }

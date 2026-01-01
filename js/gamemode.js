@@ -19,6 +19,23 @@ export function selectGameMode(mode) {
 			btn.classList.add('border-transparent');
 		}
 	});
+	
+	// Check if both players are ready to move to waitingToStart
+	// Use setTimeout to ensure state is updated first
+	setTimeout(() => {
+		import('./selection.js').then(module => {
+			module.checkAndUpdateWaitingState();
+		});
+	}, 0);
+}
+
+export function clearGameModeSelection() {
+	// Clear all game mode button styling
+	const buttons = document.querySelectorAll('.game-mode-btn');
+	buttons.forEach(btn => {
+		btn.classList.remove('border-yellow-400', 'border-4', 'scale-110');
+		btn.classList.add('border-transparent');
+	});
 }
 
 export function initGameMode() {
