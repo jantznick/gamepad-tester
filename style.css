@@ -7,6 +7,15 @@
 /* Character selection buttons - kid-friendly */
 .character-btn {
 	transition: all 0.3s ease;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.character-btn img {
+	max-width: 100%;
+	max-height: 100%;
+	width: auto;
+	height: auto;
 }
 
 .character-btn:not(:disabled):hover {
@@ -15,6 +24,25 @@
 
 .character-btn:not(:disabled):active {
 	transform: scale(0.95);
+}
+
+/* Selected character image grow animation */
+@keyframes grow {
+	0% {
+		transform: scale(0);
+		opacity: 0;
+	}
+	50% {
+		transform: scale(1.1);
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+.character-selected-image {
+	animation: grow 0.5s ease-out;
 }
 
 /* Smooth animations */
@@ -38,4 +66,33 @@ body:-ms-fullscreen {
 /* Ensure canvas fills screen */
 #game-screen canvas {
 	display: block;
+}
+
+/* Character selection screen - ensure no scrolling */
+#start-screen {
+	overflow: hidden;
+}
+
+/* Character button containers - horizontal scrolling row */
+#player1-buttons,
+#player2-buttons {
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: none; /* Hide scrollbar in Firefox */
+	-ms-overflow-style: none; /* Hide scrollbar in IE and Edge */
+	-webkit-overflow-scrolling: touch;
+	min-width: 0;
+	width: 100%;
+}
+
+/* Hide scrollbar in WebKit browsers (Chrome, Safari) */
+#player1-buttons::-webkit-scrollbar,
+#player2-buttons::-webkit-scrollbar {
+	display: none;
+}
+
+/* Prevent character buttons from shrinking */
+#player1-buttons .character-btn,
+#player2-buttons .character-btn {
+	flex-shrink: 0;
 }

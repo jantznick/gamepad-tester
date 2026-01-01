@@ -9,44 +9,50 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen">
 	<!-- Start Screen -->
-	<div id="start-screen" class="min-h-screen flex items-center justify-center p-4">
-		<div class="max-w-4xl w-full">
+	<div id="start-screen" class="h-screen flex flex-col items-center justify-start p-2 overflow-hidden">
+		<div class="w-full max-w-7xl flex flex-col h-full">
 			<!-- Title -->
-			<div class="text-center mb-8">
-				<h1 class="text-6xl font-bold text-purple-800 mb-4">Character Collector</h1>
-				<p class="text-xl text-gray-700">Choose your characters and collect your prizes!</p>
+			<div class="text-center mb-2 flex-shrink-0">
+				<h1 class="text-3xl font-bold text-purple-800 mb-1">Character Collector</h1>
+				<p class="text-sm text-gray-700">Choose your characters and collect your prizes!</p>
 			</div>
 
 			<!-- Character Selection -->
-			<div class="bg-white rounded-lg shadow-2xl p-6 mb-6">
-				<h2 class="text-2xl font-semibold mb-4 text-gray-800 text-center">Select Characters</h2>
+			<div class="bg-white rounded-lg shadow-2xl p-3 mb-2 flex-grow flex flex-col overflow-hidden">
+				<h2 class="text-lg font-semibold mb-2 text-gray-800 text-center flex-shrink-0">Select Characters</h2>
 				
-				<div class="grid md:grid-cols-2 gap-6">
+				<div class="grid md:grid-cols-2 gap-3 min-h-0">
 					<!-- Player 1 Selection -->
-					<div id="player1-box" class="border-4 border-gray-300 rounded-lg p-4 bg-gray-50 transition-all">
-						<h3 id="player1-title" class="font-bold text-gray-600 mb-4 text-2xl text-center">Player 1</h3>
-						<div class="flex flex-wrap gap-4 justify-center mb-4" id="player1-buttons">
+					<div id="player1-box" class="border-4 border-gray-300 rounded-lg pt-2 px-2 pb-1 bg-gray-50 transition-all flex flex-col overflow-hidden">
+						<h3 id="player1-title" class="font-bold text-gray-600 mb-1 text-lg text-center flex-shrink-0">Player 1</h3>
+						<div class="flex gap-4 overflow-x-auto mb-1 flex-shrink-0 px-1 py-1" id="player1-buttons" style="min-width: 0;">
 							<!-- Character images will be dynamically generated from config.json -->
 						</div>
-						<div class="text-center">
-							<div id="player1-selected" class="text-lg font-semibold text-gray-600 mb-2">Tap a character!</div>
-							<div class="text-xs text-gray-500 mb-2">Controls: Arrow Keys or Gamepad 1</div>
-							<button id="player1-deselect" onclick="deselectCharacter(0)" class="hidden px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm font-bold">
+						<div id="player1-selected-image" class="hidden flex-shrink-0 mb-2 w-full flex justify-center items-center">
+							<!-- Selected character image will be shown here -->
+						</div>
+						<div class="text-center flex-shrink-0">
+							<div id="player1-selected" class="text-sm font-semibold text-gray-600 mb-0.5">Tap a character!</div>
+							<div class="text-xs text-gray-500">Controls: Arrow Keys or Gamepad 1</div>
+							<button id="player1-deselect" onclick="deselectCharacter(0)" class="hidden px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-xs font-bold">
 								Deselect Character
 							</button>
 						</div>
 					</div>
 
 					<!-- Player 2 Selection -->
-					<div id="player2-box" class="border-4 border-gray-300 rounded-lg p-4 bg-gray-50 transition-all">
-						<h3 id="player2-title" class="font-bold text-gray-600 mb-4 text-2xl text-center">Player 2</h3>
-						<div class="flex flex-wrap gap-4 justify-center mb-4" id="player2-buttons">
+					<div id="player2-box" class="border-4 border-gray-300 rounded-lg pt-2 px-2 pb-1 bg-gray-50 transition-all flex flex-col overflow-hidden">
+						<h3 id="player2-title" class="font-bold text-gray-600 mb-1 text-lg text-center flex-shrink-0">Player 2</h3>
+						<div class="flex gap-4 overflow-x-auto mb-1 flex-shrink-0 px-1 py-1" id="player2-buttons" style="min-width: 0;">
 							<!-- Character images will be dynamically generated from config.json -->
 						</div>
-						<div class="text-center">
-							<div id="player2-selected" class="text-lg font-semibold text-gray-600 mb-2">Tap a character!</div>
-							<div class="text-xs text-gray-500 mb-2">Controls: WASD Keys or Gamepad 2</div>
-							<button id="player2-deselect" onclick="deselectCharacter(1)" class="hidden px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm font-bold">
+						<div id="player2-selected-image" class="hidden flex-shrink-0 mb-2 w-full flex justify-center items-center">
+							<!-- Selected character image will be shown here -->
+						</div>
+						<div class="text-center flex-shrink-0">
+							<div id="player2-selected" class="text-sm font-semibold text-gray-600 mb-0.5">Tap a character!</div>
+							<div class="text-xs text-gray-500">Controls: WASD Keys or Gamepad 2</div>
+							<button id="player2-deselect" onclick="deselectCharacter(1)" class="hidden px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-xs font-bold">
 								Deselect Character
 							</button>
 						</div>
@@ -54,34 +60,31 @@
 				</div>
 
 				<!-- Game Mode Selection -->
-				<div class="mb-4">
-					<h3 class="text-lg font-semibold mb-3 text-gray-800 text-center">Game Mode</h3>
-					<div class="flex flex-wrap gap-3 justify-center">
-						<button onclick="selectGameMode('freeplay')" data-mode="freeplay" class="game-mode-btn px-6 py-3 bg-purple-200 rounded-lg hover:bg-purple-300 transition font-medium border-4 border-transparent">
+				<div class="mb-2 flex-shrink-0">
+					<h3 class="text-sm font-semibold mb-1 text-gray-800 text-center">Game Mode</h3>
+					<div class="flex flex-wrap gap-2 justify-center">
+						<button onclick="selectGameMode('freeplay')" data-mode="freeplay" class="game-mode-btn px-4 py-2 bg-purple-200 rounded-lg hover:bg-purple-300 transition text-sm font-medium border-4 border-transparent">
 							Free Play
 						</button>
-						<button onclick="selectGameMode('race')" data-mode="race" class="game-mode-btn px-6 py-3 bg-purple-200 rounded-lg hover:bg-purple-300 transition font-medium border-4 border-transparent">
+						<button onclick="selectGameMode('race')" data-mode="race" class="game-mode-btn px-4 py-2 bg-purple-200 rounded-lg hover:bg-purple-300 transition text-sm font-medium border-4 border-transparent">
 							Race (First to 15)
 						</button>
-						<button onclick="selectGameMode('countdown')" data-mode="countdown" class="game-mode-btn px-6 py-3 bg-purple-200 rounded-lg hover:bg-purple-300 transition font-medium border-4 border-transparent">
+						<button onclick="selectGameMode('countdown')" data-mode="countdown" class="game-mode-btn px-4 py-2 bg-purple-200 rounded-lg hover:bg-purple-300 transition text-sm font-medium border-4 border-transparent">
 							Countdown (60s)
 						</button>
 					</div>
 				</div>
 
-				<!-- Countdown Display -->
-				<div id="selection-countdown" class="text-center mt-4 hidden"></div>
-				
 				<!-- Start Button -->
-				<div class="text-center mt-6">
-					<button id="start-button" onclick="startGame()" disabled class="px-8 py-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-xl font-bold disabled:bg-gray-400 disabled:cursor-not-allowed">
+				<div class="text-center mb-2 flex-shrink-0">
+					<button id="start-button" onclick="startGame()" disabled class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-lg font-bold disabled:bg-gray-400 disabled:cursor-not-allowed">
 						Start Game
 					</button>
 				</div>
 			</div>
 
 			<!-- Gamepad Status -->
-			<div id="gamepad-status" class="text-center text-sm text-gray-600"></div>
+			<div id="gamepad-status" class="text-center text-xs text-gray-600 flex-shrink-0"></div>
 		</div>
 	</div>
 

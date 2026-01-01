@@ -1,9 +1,9 @@
-// Character selection and countdown logic
+// Character selection logic
 import gameState from './state.js';
 import { CONFIG, CHARACTER_DATA } from './config.js';
-import { updateCharacterButtons, updateSelectedDisplay, updateStartButton, updateCountdownDisplay, highlightCharacter, highlightGameMode } from './ui.js';
+import { updateCharacterButtons, updateSelectedDisplay, updateStartButton, highlightCharacter, highlightGameMode } from './ui.js';
 
-let countdownInterval = null;
+let countdownInterval = null; // Kept for stopSelectionCountdown compatibility
 
 export function selectCharacter(playerIndex, characterName) {
 	const state = gameState.getState();
@@ -44,18 +44,7 @@ export function selectCharacter(playerIndex, characterName) {
 			updateSelectedDisplay(newPlayers);
 			updateStartButton(newPlayers);
 			
-			// Handle countdown logic
-			const bothSelected = newPlayers[0].character && newPlayers[1].character;
-			
-			if (bothSelected) {
-				// Both selected - stop countdown
-				stopSelectionCountdown();
-			} else {
-				// Start countdown if this is the first selection
-				if (!newPlayers[otherPlayerIndex].character && !state.countdown.active) {
-					startSelectionCountdown();
-				}
-			}
+			// No countdown timer - players manually start when ready
 		}
 	}
 }
@@ -98,8 +87,7 @@ export function deselectCharacter(playerIndex) {
 			module.highlightCharacter(playerIndex, firstAvailableIndex);
 		});
 		
-		// Stop countdown if it was active
-		stopSelectionCountdown();
+		// No countdown timer needed
 	}
 }
 
@@ -320,70 +308,13 @@ export function handleGamepadNavigate(playerIndex, direction) {
 	}
 }
 
-export function startSelectionCountdown() {
-	const state = gameState.getState();
-	if (state.countdown.active) return;
-	
-	gameState.updateState('countdown', {
-		active: true,
-		time: 15,
-		interval: null
-	});
-	
-	updateCountdownDisplay({ active: true, time: 15 });
-	
-	countdownInterval = setInterval(() => {
-		const currentState = gameState.getState();
-		const newTime = currentState.countdown.time - 1;
-		
-		gameState.updateState('countdown', {
-			...currentState.countdown,
-			time: newTime
-		});
-		
-		updateCountdownDisplay({ active: true, time: newTime });
-		
-			if (newTime <= 0) {
-				stopSelectionCountdown();
-				const currentState = gameState.getState();
-				
-				// Set default mode to freeplay if not selected
-				if (!currentState.gameMode) {
-					gameState.updateState('gameMode', 'freeplay');
-				}
-				
-				// Move all players with characters to 'playing' state
-				const newPlayers = currentState.players.map(p => {
-					if (p.character) {
-						return { ...p, gameState: 'playing' };
-					}
-					return p;
-				});
-				gameState.updateState('players', newPlayers);
-				
-				// Auto-start after a brief delay
-				setTimeout(() => {
-					import('./game.js').then(module => {
-						module.startGame();
-					});
-				}, 500);
-			}
-	}, 1000);
-}
-
+// Countdown timer removed - players manually start when ready
 export function stopSelectionCountdown() {
+	// No-op - kept for compatibility with existing calls
 	if (countdownInterval) {
 		clearInterval(countdownInterval);
 		countdownInterval = null;
 	}
-	
-	gameState.updateState('countdown', {
-		active: false,
-		time: 15,
-		interval: null
-	});
-	
-	updateCountdownDisplay({ active: false, time: 15 });
 }
 
 function autoAssignUnselectedPlayer() {

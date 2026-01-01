@@ -119,7 +119,7 @@ async function init() {
 		}
 	});
 	
-	// Don't set default game mode - players must select it manually or wait for countdown
+	// Don't set default game mode - players must select it manually
 }
 
 // Initialize when DOM is ready

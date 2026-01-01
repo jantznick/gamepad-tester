@@ -255,18 +255,27 @@ function handleGamepadSelectionInput(playerIndex, gamepad) {
 	};
 	
 	// Handle D-pad/left stick for navigation (character selection and game mode)
+	// D-pad buttons: 12=up, 13=down, 14=left, 15=right (standard gamepad mapping)
+	const dpadUp = gamepad.buttons[12];
+	const dpadDown = gamepad.buttons[13];
+	const dpadLeft = gamepad.buttons[14];
+	const dpadRight = gamepad.buttons[15];
+	
+	// Left stick axes
 	const leftRight = gamepad.axes[0]; // -1 to 1, left to right
 	const upDown = gamepad.axes[1]; // -1 to 1, up to down
 	
-	// Store axis states and navigation cooldown
+	// Store axis states, D-pad states, and navigation cooldown
 	if (!lastButtonStates[gamepadId].axes) {
 		lastButtonStates[gamepadId].axes = { x: 0, y: 0 };
+		lastButtonStates[gamepadId].dpad = { up: false, down: false, left: false, right: false };
 		lastButtonStates[gamepadId].navCooldown = 0;
 	}
 	
 	const threshold = 0.5;
 	const oldX = lastButtonStates[gamepadId].axes.x;
 	const oldY = lastButtonStates[gamepadId].axes.y;
+	const oldDpad = lastButtonStates[gamepadId].dpad;
 	const navCooldown = lastButtonStates[gamepadId].navCooldown || 0;
 	
 	// Decrease cooldown
@@ -274,7 +283,53 @@ function handleGamepadSelectionInput(playerIndex, gamepad) {
 		lastButtonStates[gamepadId].navCooldown = navCooldown - 50; // Decrease by poll interval
 	}
 	
-	// Detect axis changes for navigation (with debouncing)
+	// Handle D-pad navigation
+	const isDpadUp = dpadUp && dpadUp.pressed;
+	const isDpadDown = dpadDown && dpadDown.pressed;
+	const isDpadLeft = dpadLeft && dpadLeft.pressed;
+	const isDpadRight = dpadRight && dpadRight.pressed;
+	
+	// D-pad up
+	if (!oldDpad.up && isDpadUp && navCooldown <= 0) {
+		import('./selection.js').then(module => {
+			module.handleGamepadNavigate(playerIndex, 'up');
+		});
+		lastButtonStates[gamepadId].navCooldown = 600; // 600ms cooldown
+	}
+	
+	// D-pad down
+	if (!oldDpad.down && isDpadDown && navCooldown <= 0) {
+		import('./selection.js').then(module => {
+			module.handleGamepadNavigate(playerIndex, 'down');
+		});
+		lastButtonStates[gamepadId].navCooldown = 600; // 600ms cooldown
+	}
+	
+	// D-pad left
+	if (!oldDpad.left && isDpadLeft && navCooldown <= 0) {
+		import('./selection.js').then(module => {
+			module.handleGamepadNavigate(playerIndex, 'left');
+		});
+		lastButtonStates[gamepadId].navCooldown = 600; // 600ms cooldown
+	}
+	
+	// D-pad right
+	if (!oldDpad.right && isDpadRight && navCooldown <= 0) {
+		import('./selection.js').then(module => {
+			module.handleGamepadNavigate(playerIndex, 'right');
+		});
+		lastButtonStates[gamepadId].navCooldown = 600; // 600ms cooldown
+	}
+	
+	// Update D-pad states
+	lastButtonStates[gamepadId].dpad = {
+		up: isDpadUp,
+		down: isDpadDown,
+		left: isDpadLeft,
+		right: isDpadRight
+	};
+	
+	// Detect axis changes for left stick navigation (with debouncing)
 	if (Math.abs(leftRight) > threshold) {
 		// Stick is pushed left/right
 		if (Math.abs(oldX) <= threshold && navCooldown <= 0) {
@@ -440,12 +495,24 @@ export function getPlayerMovement(playerIndex) {
 	if (playerKeys.up) dy -= CONFIG.moveSpeed;
 	if (playerKeys.down) dy += CONFIG.moveSpeed;
 	
-	// Gamepad input
+	// Gamepad input (left stick and D-pad)
 	if (player.gamepadIndex !== null && player.gamepadIndex !== undefined) {
 		const gamepad = navigator.getGamepads()[player.gamepadIndex];
 		if (gamepad) {
+			// Left stick axes
 			dx += gamepad.axes[0] * CONFIG.moveSpeed;
 			dy += gamepad.axes[1] * CONFIG.moveSpeed;
+			
+			// D-pad buttons: 12=up, 13=down, 14=left, 15=right (standard gamepad mapping)
+			const dpadUp = gamepad.buttons[12];
+			const dpadDown = gamepad.buttons[13];
+			const dpadLeft = gamepad.buttons[14];
+			const dpadRight = gamepad.buttons[15];
+			
+			if (dpadUp && dpadUp.pressed) dy -= CONFIG.moveSpeed;
+			if (dpadDown && dpadDown.pressed) dy += CONFIG.moveSpeed;
+			if (dpadLeft && dpadLeft.pressed) dx -= CONFIG.moveSpeed;
+			if (dpadRight && dpadRight.pressed) dx += CONFIG.moveSpeed;
 		}
 	}
 	

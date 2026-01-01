@@ -5,7 +5,7 @@ import { Prize } from './prize.js';
 import { CONFIG, CHARACTER_DATA } from './config.js';
 import { getPlayerMovement } from './input.js';
 import { updateScoreDisplay } from './ui.js';
-import { stopSelectionCountdown, autoAssignForManualStart } from './selection.js';
+import { stopSelectionCountdown } from './selection.js';
 import { initGameMode, updateRaceProgress, stopGameTimer } from './gamemode.js';
 
 let canvas, ctx;
@@ -48,12 +48,8 @@ export function startGame() {
 function doStartGame() {
 	const state = gameState.getState();
 	
-	// Don't auto-assign on manual start - only when countdown expires
-	// The user should be able to start with just one player if they want
-	// Auto-assignment only happens when countdown expires (handled in selection.js)
-	
-	// Stop countdown if running
-	stopSelectionCountdown();
+	// Players manually start when ready - no auto-assignment or countdown
+	stopSelectionCountdown(); // No-op, kept for compatibility
 	
 	// Update phase
 	gameState.updateState('phase', 'playing');
@@ -381,11 +377,15 @@ function checkCollisions() {
 		if (prize.isExpired) return;
 		
 		state.players.forEach((player) => {
-			// Only check collisions for players who are playing
+			// Only check collisions for players who are playing and have a character
 			if (player.gameState !== 'playing') return;
+			if (!player.character) return;
 			
 			const charData = CHARACTER_DATA[player.character];
+			if (!charData) return;
+			
 			const prizeType = charData.prizeType;
+			if (!prizeType) return;
 			
 			// Check collision
 			const charWidth = CONFIG.characterSize;
@@ -457,7 +457,8 @@ function generateAdditionalPrizes(existingPrizes) {
 		
 		if (needed > 0) {
 			// Use prize image if available, otherwise use prizeType as fallback
-			const prizeImageId = charData.prize ? charData.prize.replace('.png', '') : prizeType;
+			// Extract just the filename without path and extension (e.g., "images/prizes/heart.png" -> "heart")
+			const prizeImageId = charData.prize ? charData.prize.split('/').pop().replace('.png', '') : prizeType;
 			
 			for (let i = 0; i < needed; i++) {
 				newPrizes.push(new Prize(

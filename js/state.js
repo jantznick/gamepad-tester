@@ -30,13 +30,6 @@ class GameState {
 				}
 			],
 			
-			// Selection countdown
-			countdown: {
-				active: false,
-				time: 15,
-				interval: null
-			},
-			
 			// Game timer (for countdown mode)
 			gameTimer: {
 				time: 60,

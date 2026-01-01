@@ -41,21 +41,27 @@ export function updateCharacterSelectionUI() {
 				const img = document.createElement('img');
 				img.src = char.image;
 				img.alt = char.playerName;
-				img.className = 'w-24 h-24 object-contain';
+				img.className = 'object-contain';
+				img.style.maxWidth = '100%';
+				img.style.maxHeight = '100%';
 				
 				if (!isAvailable) {
 					// Character not available (not loaded)
-					button.className = 'character-btn p-2 rounded-xl border-4 border-transparent opacity-50 cursor-not-allowed bg-gray-200';
+					button.className = 'character-btn rounded-lg border-4 border-transparent opacity-50 cursor-not-allowed bg-gray-200 flex items-center justify-center';
+					button.style.width = '80px';
+					button.style.height = '80px';
 					button.disabled = true;
 					img.style.filter = 'grayscale(100%)';
 				} else if (isTaken && !isSelected) {
 					// Character taken by other player
-					button.className = 'character-btn p-2 rounded-xl border-4 border-red-300 opacity-60 cursor-not-allowed bg-red-50';
+					button.className = 'character-btn rounded-lg border-4 border-red-300 opacity-60 cursor-not-allowed bg-red-50 flex items-center justify-center';
+					button.style.width = '80px';
+					button.style.height = '80px';
 					button.disabled = true;
 					img.style.filter = 'grayscale(50%)';
 					// Add a visual indicator
 					const overlay = document.createElement('div');
-					overlay.className = 'absolute inset-0 bg-red-500 bg-opacity-30 rounded-xl flex items-center justify-center';
+					overlay.className = 'absolute inset-0 bg-red-500 bg-opacity-30 rounded-lg flex items-center justify-center';
 					overlay.textContent = 'Taken';
 					overlay.style.fontSize = '0.75rem';
 					overlay.style.fontWeight = 'bold';
@@ -64,10 +70,14 @@ export function updateCharacterSelectionUI() {
 					button.appendChild(overlay);
 				} else if (isFirstAvailable) {
 					// First available character - highlight it
-					button.className = 'character-btn p-2 rounded-xl border-4 border-blue-500 scale-110 shadow-lg transition-all transform cursor-pointer bg-white';
+					button.className = 'character-btn rounded-lg border-4 border-blue-500 scale-110 shadow-lg transition-all transform cursor-pointer bg-white flex items-center justify-center';
+					button.style.width = '80px';
+					button.style.height = '80px';
 				} else {
 					// Character available
-					button.className = 'character-btn p-2 rounded-xl border-4 border-transparent hover:border-purple-400 transition-all transform hover:scale-110 cursor-pointer bg-white shadow-md';
+					button.className = 'character-btn rounded-lg border-4 border-transparent hover:border-purple-400 transition-all transform hover:scale-110 cursor-pointer bg-white shadow-md flex items-center justify-center';
+					button.style.width = '80px';
+					button.style.height = '80px';
 				}
 				
 				button.appendChild(img);
@@ -138,6 +148,8 @@ export function highlightCharacter(playerIndex, charIndex) {
 		const targetChar = availableChars[charIndex];
 		const player = state.players[playerIndex];
 		
+		let highlightedButton = null;
+		
 		buttons.forEach((btn) => {
 			const charName = btn.getAttribute('data-character');
 			const isSelected = charName === player.character;
@@ -151,6 +163,7 @@ export function highlightCharacter(playerIndex, charIndex) {
 				// Highlight this character (blue)
 				btn.classList.remove('border-transparent', 'hover:border-purple-400', 'border-yellow-400', 'border-8', 'scale-125', 'shadow-2xl', 'ring-4', 'ring-yellow-300');
 				btn.classList.add('border-blue-500', 'border-4', 'scale-110', 'shadow-lg');
+				highlightedButton = btn;
 			} else {
 				// Remove all highlights
 				btn.classList.remove('border-blue-500', 'scale-110', 'shadow-lg', 'border-yellow-400', 'border-8', 'scale-125', 'shadow-2xl', 'ring-4', 'ring-yellow-300');
@@ -159,6 +172,15 @@ export function highlightCharacter(playerIndex, charIndex) {
 				}
 			}
 		});
+		
+		// Scroll highlighted button into view
+		if (highlightedButton) {
+			highlightedButton.scrollIntoView({
+				behavior: 'smooth',
+				block: 'nearest',
+				inline: 'center'
+			});
+		}
 	}
 }
 
@@ -181,6 +203,8 @@ export function updateSelectedDisplay(players) {
 	const player1Selected = document.getElementById('player1-selected');
 	const player1Box = document.getElementById('player1-box');
 	const player1Title = document.getElementById('player1-title');
+	const player1Buttons = document.getElementById('player1-buttons');
+	const player1SelectedImage = document.getElementById('player1-selected-image');
 	
 	if (player1Selected) {
 		const charData = players[0].character ? CHARACTER_DATA[players[0].character] : null;
@@ -188,8 +212,30 @@ export function updateSelectedDisplay(players) {
 			? `✓ ${charData.playerName} selected!`
 			: 'Tap a character!';
 		player1Selected.className = charData 
-			? 'text-lg font-semibold text-blue-700 mb-2'
-			: 'text-lg font-semibold text-gray-600 mb-2';
+			? 'text-sm font-semibold text-blue-700 mb-0.5'
+			: 'text-sm font-semibold text-gray-600 mb-0.5';
+	}
+	
+	// Show/hide character buttons and selected image
+	if (player1Buttons && player1SelectedImage) {
+		const charData = players[0].character ? CHARACTER_DATA[players[0].character] : null;
+		if (charData) {
+			// Hide buttons, show selected image
+			player1Buttons.classList.add('hidden');
+			player1SelectedImage.classList.remove('hidden');
+			
+			// Update selected image
+			player1SelectedImage.innerHTML = '';
+			const img = document.createElement('img');
+			img.src = charData.image;
+			img.alt = charData.playerName;
+			img.className = 'character-selected-image w-32 h-32 object-contain animate-grow';
+			player1SelectedImage.appendChild(img);
+		} else {
+			// Show buttons, hide selected image
+			player1Buttons.classList.remove('hidden');
+			player1SelectedImage.classList.add('hidden');
+		}
 	}
 	
 	// Show/hide deselect button
@@ -205,11 +251,11 @@ export function updateSelectedDisplay(players) {
 	if (player1Box && player1Title) {
 		const charData = players[0].character ? CHARACTER_DATA[players[0].character] : null;
 		if (charData) {
-			player1Box.className = 'border-4 border-blue-400 rounded-lg p-4 bg-blue-50 transition-all';
-			player1Title.className = 'font-bold text-blue-600 mb-4 text-2xl text-center';
+			player1Box.className = 'border-4 border-blue-400 rounded-lg pt-2 px-2 pb-1 bg-blue-50 transition-all flex flex-col overflow-hidden';
+			player1Title.className = 'font-bold text-blue-600 mb-1 text-lg text-center flex-shrink-0';
 		} else {
-			player1Box.className = 'border-4 border-gray-300 rounded-lg p-4 bg-gray-50 transition-all';
-			player1Title.className = 'font-bold text-gray-600 mb-4 text-2xl text-center';
+			player1Box.className = 'border-4 border-gray-300 rounded-lg pt-2 px-2 pb-1 bg-gray-50 transition-all flex flex-col overflow-hidden';
+			player1Title.className = 'font-bold text-gray-600 mb-1 text-lg text-center flex-shrink-0';
 		}
 	}
 	
@@ -217,6 +263,8 @@ export function updateSelectedDisplay(players) {
 	const player2Selected = document.getElementById('player2-selected');
 	const player2Box = document.getElementById('player2-box');
 	const player2Title = document.getElementById('player2-title');
+	const player2Buttons = document.getElementById('player2-buttons');
+	const player2SelectedImage = document.getElementById('player2-selected-image');
 	
 	if (player2Selected) {
 		const charData = players[1].character ? CHARACTER_DATA[players[1].character] : null;
@@ -224,8 +272,30 @@ export function updateSelectedDisplay(players) {
 			? `✓ ${charData.playerName} selected!`
 			: 'Tap a character!';
 		player2Selected.className = charData 
-			? 'text-lg font-semibold text-green-700 mb-2'
-			: 'text-lg font-semibold text-gray-600 mb-2';
+			? 'text-sm font-semibold text-green-700 mb-0.5'
+			: 'text-sm font-semibold text-gray-600 mb-0.5';
+	}
+	
+	// Show/hide character buttons and selected image
+	if (player2Buttons && player2SelectedImage) {
+		const charData = players[1].character ? CHARACTER_DATA[players[1].character] : null;
+		if (charData) {
+			// Hide buttons, show selected image
+			player2Buttons.classList.add('hidden');
+			player2SelectedImage.classList.remove('hidden');
+			
+			// Update selected image
+			player2SelectedImage.innerHTML = '';
+			const img = document.createElement('img');
+			img.src = charData.image;
+			img.alt = charData.playerName;
+			img.className = 'character-selected-image w-32 h-32 object-contain animate-grow';
+			player2SelectedImage.appendChild(img);
+		} else {
+			// Show buttons, hide selected image
+			player2Buttons.classList.remove('hidden');
+			player2SelectedImage.classList.add('hidden');
+		}
 	}
 	
 	// Show/hide deselect button
@@ -241,11 +311,11 @@ export function updateSelectedDisplay(players) {
 	if (player2Box && player2Title) {
 		const charData = players[1].character ? CHARACTER_DATA[players[1].character] : null;
 		if (charData) {
-			player2Box.className = 'border-4 border-green-400 rounded-lg p-4 bg-green-50 transition-all';
-			player2Title.className = 'font-bold text-green-600 mb-4 text-2xl text-center';
+			player2Box.className = 'border-4 border-green-400 rounded-lg pt-2 px-2 pb-1 bg-green-50 transition-all flex flex-col overflow-hidden';
+			player2Title.className = 'font-bold text-green-600 mb-1 text-lg text-center flex-shrink-0';
 		} else {
-			player2Box.className = 'border-4 border-gray-300 rounded-lg p-4 bg-gray-50 transition-all';
-			player2Title.className = 'font-bold text-gray-600 mb-4 text-2xl text-center';
+			player2Box.className = 'border-4 border-gray-300 rounded-lg pt-2 px-2 pb-1 bg-gray-50 transition-all flex flex-col overflow-hidden';
+			player2Title.className = 'font-bold text-gray-600 mb-1 text-lg text-center flex-shrink-0';
 		}
 	}
 }
@@ -271,18 +341,7 @@ export function updateStartButton(players) {
 	}
 }
 
-export function updateCountdownDisplay(countdown) {
-	const countdownEl = document.getElementById('selection-countdown');
-	if (countdownEl) {
-		if (countdown.active && countdown.time > 0) {
-			countdownEl.textContent = `Game starting in ${countdown.time}...`;
-			countdownEl.classList.remove('hidden');
-			countdownEl.classList.add('text-red-600', 'font-bold', 'text-xl');
-		} else {
-			countdownEl.classList.add('hidden');
-		}
-	}
-}
+// Countdown display removed - players manually start when ready
 
 export function updateGamepadStatus(gamepads) {
 	const statusEl = document.getElementById('gamepad-status');
